@@ -13,7 +13,8 @@ fn main() {
         "{}:{}:{}",
         request.challenge_uuid, request.challenge_timestamp, request.value
     );
-    validate_attestation(attestation, challenge, key_id, request.app_id, false, false);
+    let result = validate_attestation(attestation, challenge, key_id, request.app_id, false, false);
+    assert_eq!(result, true);
 
     // write public output to the journal
     let value = request.value;
