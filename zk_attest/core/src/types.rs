@@ -51,4 +51,5 @@ pub struct AppAttestationRequest {
     pub key_id: String,
     pub app_id: String,
     pub raw_attestation: String,
+    pub address: String,
 }

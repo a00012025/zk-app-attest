@@ -1,3 +1,5 @@
+use alloy_primitives::{Address, U256};
+use alloy_sol_types::SolValue;
 use app_attest_core::types::AppAttestationRequest;
 use methods::{ZK_ATTEST_GUEST_ELF, ZK_ATTEST_GUEST_ID};
 use risc0_zkvm::{default_prover, ExecutorEnv};
@@ -23,6 +25,7 @@ fn main() {
         key_id: key_id.to_string(),
         app_id: app_id.to_string(),
         raw_attestation: raw_attestation.to_string(),
+        address: "0x0901549Bc297BCFf4221d0ECfc0f718932205e33".to_string(),
     };
 
     let env = ExecutorEnv::builder()
@@ -30,7 +33,6 @@ fn main() {
         .unwrap()
         .build()
         .unwrap();
-
     // Obtain the default prover.
     let prover = default_prover();
 
@@ -41,9 +43,12 @@ fn main() {
     // extract the receipt.
     let receipt = prove_info.receipt;
 
-    // TODO: Implement code for retrieving receipt journal here.
-    let output_value: String = receipt.journal.decode().unwrap();
-    println!("output_value: {}", output_value);
+    // Decode the journal to get the address and value
+    let journal_bytes = receipt.journal.bytes.clone();
+    let (address, value) = <(Address, U256)>::abi_decode(&journal_bytes, true).unwrap();
+
+    println!("Address: {:?}", address);
+    println!("Value: {}", value);
 
     // The receipt was verified at the end of proving, but the below code is an
     // example of how someone else could verify this receipt.

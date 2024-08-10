@@ -1,3 +1,5 @@
+use alloy_primitives::{Address, U256};
+use alloy_sol_types::SolValue;
 use app_attest_core::attestation::validate_attestation;
 use app_attest_core::types::{AppAttestationRequest, AttestationObject};
 use app_attest_core::utils;
@@ -16,7 +18,15 @@ fn main() {
     let result = validate_attestation(attestation, challenge, key_id, request.app_id, false, false);
     assert_eq!(result, true);
 
-    // write public output to the journal
-    let value = request.value;
-    env::commit(&value);
+    // Parse and pad the address
+    let address = Address::parse_checksummed(&request.address, None).unwrap();
+
+    // Parse and pad the value
+    let value = U256::from_str_radix(&request.value, 10).unwrap();
+
+    // ABI encode the address and value
+    let encoded = (address, value).abi_encode();
+
+    // Commit the ABI encoded data to the journal
+    env::commit_slice(encoded.as_slice());
 }
