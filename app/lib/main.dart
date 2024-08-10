@@ -13,11 +13,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  @override
-  void initState() async {
-    super.initState();
-  }
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -74,8 +69,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
     final appAttestationPlugin = AppDeviceIntegrity();
     String sessionId = '550e8400-e29b-41d4-a71gst6-446655440000';
+
     appAttestationPlugin
-        .getAttestationServiceSupport(challengeString: sessionId)
+        .getAttestationServiceSupport(challengeString: sessionId, gcp: 1)
         .then((token) {
       print('tokenReceived: $token');
     });

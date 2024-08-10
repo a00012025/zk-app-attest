@@ -4,10 +4,9 @@ packages:
   app_device_integrity:
     dependency: "direct main"
     description:
-      name: app_device_integrity
-      sha256: "10dae8a3066fd53471c8b85863bf11c2e75ed13aa8c940084b5e76b3ce59c81d"
-      url: "https://pub.dev"
-    source: hosted
+      path: "../app_device_integrity"
+      relative: true
+    source: path
     version: "1.0.5"
   async:
     dependency: transitive
