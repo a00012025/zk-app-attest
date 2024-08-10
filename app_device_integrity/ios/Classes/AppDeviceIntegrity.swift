@@ -1,10 +1,8 @@
 import Foundation
 import DeviceCheck
 import CryptoKit
-import AppKit
 
 @available(iOS 14.0, macOS 11.0, *)
-
 final class AppDeviceIntegrity {
     let inputString: String
     var attestationString: String?

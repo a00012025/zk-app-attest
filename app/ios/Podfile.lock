@@ -14,7 +14,7 @@ EXTERNAL SOURCES:
     :path: Flutter
 
 SPEC CHECKSUMS:
-  app_device_integrity: 9be0287fa5c96c408b25a6163c7a5138777a9cf6
+  app_device_integrity: 150dff99802a139bb997ce8242da32458822147d
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
 
 PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796

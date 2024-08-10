@@ -1,8 +1,5 @@
 import Flutter
 import UIKit
-#if os(macOS)
-import AppKit
-#endif
 
 @available(iOS 14.0, macOS 11.0, *)
 public class AppDeviceIntegrityPlugin: NSObject, FlutterPlugin {

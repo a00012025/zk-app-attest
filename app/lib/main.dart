@@ -1,3 +1,7 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:app_device_integrity/app_device_integrity.dart';
 
@@ -62,6 +66,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  ServerSocket? _serverSocket;
+  List<String> _messages = [];
 
   @override
   void initState() {
@@ -75,35 +81,54 @@ class _MyHomePageState extends State<MyHomePage> {
         .then((token) {
       print('tokenReceived: $token');
     });
+
+    _startTCPServer();
+  }
+
+  @override
+  void dispose() {
+    _serverSocket?.close();
+    super.dispose();
+  }
+
+  void _startTCPServer() async {
+    try {
+      // Start the server and listen on a port
+      _serverSocket = await ServerSocket.bind(InternetAddress.anyIPv4, 8000);
+      print('TCP Server started on port 8000');
+
+      _serverSocket?.listen((Socket client) {
+        print(
+            'Connection from ${client.remoteAddress.address}:${client.remotePort}');
+
+        client.listen((Uint8List data) {
+          final message = utf8.decode(data);
+          print('Message: $message');
+
+          setState(() {
+            _messages.add(
+                'Message from ${client.remoteAddress.address}:${client.remotePort} - $message');
+          });
+        }, onDone: () {
+          print('Client disconnected');
+        });
+      });
+    } catch (e) {
+      print('Error starting TCP server: $e');
+    }
   }
 
   void _incrementCounter() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
       _counter++;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Center(
