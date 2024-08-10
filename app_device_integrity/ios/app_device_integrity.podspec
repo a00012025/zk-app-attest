@@ -5,17 +5,18 @@
 Pod::Spec.new do |s|
   s.name             = 'app_device_integrity'
   s.version          = '0.0.1'
-  s.summary          = 'A new Flutter plugin project.'
+  s.summary          = 'A Flutter plugin for app attestation using Apple App Attest.'
   s.description      = <<-DESC
-A new Flutter plugin project.
+A Flutter plugin that simplifies app attestation by using Apple's App Attest to generate tokens for server verification.
                        DESC
-  s.homepage         = 'http://example.com'
+  s.homepage         = 'https://bubotech.club'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Company' => 'email@example.com' }
+  s.author           = { 'Bubotech' => 'info@bubotech.club' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
-  s.platform = :ios, '11.0'
+  s.platform = :ios, '14.0'
+  s.osx.deployment_target = '11.0'
 
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }

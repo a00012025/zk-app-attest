@@ -4,8 +4,8 @@ version: 1.0.5
 homepage: https://bubotech.club
 
 environment:
-  sdk: '>=3.2.0 <4.0.0'
-  flutter: '>=3.3.0'
+  sdk: ">=3.2.0 <4.0.0"
+  flutter: ">=3.3.0"
 
 dependencies:
   flutter:
@@ -24,4 +24,6 @@ flutter:
         package: co.bubotech.app_device_integrity
         pluginClass: AppDeviceIntegrityPlugin
       ios:
+        pluginClass: AppDeviceIntegrityPlugin
+      macos:
         pluginClass: AppDeviceIntegrityPlugin
