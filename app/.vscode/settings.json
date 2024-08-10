@@ -1,5 +1,5 @@
 {
-  "dart.sdkPath": "/Users/cbd/fvm/default",
-  "dart.flutterSdkPath": "/Users/cbd/fvm/default",
-  "build-runner.flutterPath": "/Users/cbd/fvm/default/bin/flutter"
+  "dart.sdkPath": "/Users/cbd/fvm/versions/3.24.0",
+  "dart.flutterSdkPath": ".fvm/versions/3.24.0",
+  "build-runner.flutterPath": "/Users/cbd/fvm/versions/3.24.0/bin/flutter"
 }

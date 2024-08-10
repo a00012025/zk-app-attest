@@ -19,8 +19,8 @@ class _MyAppState extends State<MyApp> {
 
     final appAttestationPlugin = AppDeviceIntegrity();
     String sessionId = '550e8400-e29b-41d4-a716-446655440000';
-    tokenReceived = await appAttestationPlugin.getAttestationServiceSupport(
-        challengeString: sessionId);
+    final tokenReceived = await appAttestationPlugin
+        .getAttestationServiceSupport(challengeString: sessionId);
     print('tokenReceived: $tokenReceived');
   }
 
