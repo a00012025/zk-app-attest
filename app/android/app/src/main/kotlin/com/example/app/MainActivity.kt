@@ -1,4 +1,4 @@
-package com.example.app
+package com.zk-app-attest.dev
 
 import io.flutter.embedding.android.FlutterActivity
 
