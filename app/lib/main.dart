@@ -74,10 +74,10 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
 
     final appAttestationPlugin = AppDeviceIntegrity();
-    String sessionId = '550e8400-e29b-41d4-a71gst6-446655440000';
+    String challenge = '35da2fc3-8616-4e3b-8cef-a526792e50fb:1723314948:231';
 
     appAttestationPlugin
-        .getAttestationServiceSupport(challengeString: sessionId, gcp: 1)
+        .getAttestationServiceSupport(challengeString: challenge)
         .then((token) {
       print('tokenReceived: $token');
     });
