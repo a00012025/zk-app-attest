@@ -1,0 +1,4 @@
+[submodule "contract"]
+	path = contract
+	url = https://github.com/a00012025/zk-app-attest-contract.git
+	branch = main
