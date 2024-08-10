@@ -1,0 +1,22 @@
+PODS:
+  - app_device_integrity (0.0.1):
+    - Flutter
+  - Flutter (1.0.0)
+
+DEPENDENCIES:
+  - app_device_integrity (from `.symlinks/plugins/app_device_integrity/ios`)
+  - Flutter (from `Flutter`)
+
+EXTERNAL SOURCES:
+  app_device_integrity:
+    :path: ".symlinks/plugins/app_device_integrity/ios"
+  Flutter:
+    :path: Flutter
+
+SPEC CHECKSUMS:
+  app_device_integrity: 9be0287fa5c96c408b25a6163c7a5138777a9cf6
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+
+PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
+
+COCOAPODS: 1.15.2

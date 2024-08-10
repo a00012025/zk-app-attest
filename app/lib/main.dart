@@ -16,12 +16,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() async {
     super.initState();
-
-    final appAttestationPlugin = AppDeviceIntegrity();
-    String sessionId = '550e8400-e29b-41d4-a716-446655440000';
-    final tokenReceived = await appAttestationPlugin
-        .getAttestationServiceSupport(challengeString: sessionId);
-    print('tokenReceived: $tokenReceived');
   }
 
   // This widget is the root of your application.
@@ -73,6 +67,19 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final appAttestationPlugin = AppDeviceIntegrity();
+    String sessionId = '550e8400-e29b-41d4-a71gst6-446655440000';
+    appAttestationPlugin
+        .getAttestationServiceSupport(challengeString: sessionId)
+        .then((token) {
+      print('tokenReceived: $token');
+    });
+  }
 
   void _incrementCounter() {
     setState(() {
