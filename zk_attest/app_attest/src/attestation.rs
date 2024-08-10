@@ -79,6 +79,8 @@ pub fn validate_attestation(
                 match new_seq.content {
                     der_parser::der::DerObjectContent::OctetString(data) => {
                         if data != expected_nonce.to_vec() {
+                            println!("Expected nonce: {:?}", expected_nonce.to_vec());
+                            println!("Actual nonce: {:?}", data);
                             panic!("Nonce mismatch.");
                         }
                     }

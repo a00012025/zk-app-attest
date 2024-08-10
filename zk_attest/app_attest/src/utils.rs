@@ -1,10 +1,11 @@
 use crate::types::{
     AssertionObject, AttestationObject, AttestationStatement, AuthenticatorData, ClientData,
 };
-use base64ct::{Base64, Base64Unpadded, Base64Url, Base64UrlUnpadded, Encoding};
-use serde_json;
-
+use base64ct::{Base64, Base64Unpadded, /*Base64Url, Base64UrlUnpadded, */ Encoding};
+use serde::Deserialize;
+use serde_cbor::Deserializer;
 use serde_cbor::{from_slice, Value};
+use serde_json;
 
 // Parse b64 to pem.
 pub fn b64_to_pem(b64: &str) -> String {
@@ -20,15 +21,20 @@ pub fn b64_to_pem(b64: &str) -> String {
 
 // Decode base64 string into assertion object.
 pub fn decode_attestation(encoded: String) -> Result<AttestationObject, serde_json::Error> {
-    // Somtimes attestation is padded with '=' and sometimes not.
-    let decoded = if encoded.ends_with("=") {
-        Base64::decode_vec(&encoded).expect("decoding error")
-    } else {
-        Base64Unpadded::decode_vec(&encoded).expect("decoding error")
-    };
-    let cbor: Value = from_slice(&decoded).expect("decoding error");
+    // Sometimes attestation is padded with '=' and sometimes not.
+    let trimmed_encoded = encoded.trim().trim_end_matches('=');
+    let decoded = Base64Unpadded::decode_vec(&trimmed_encoded).expect("decoding error");
+
+    let mut deserializer = Deserializer::from_slice(&decoded);
+    let cbor: Value = serde_cbor::value::Value::deserialize(&mut deserializer)
+        .expect("CBOR deserialization error");
+
+    // let cbor: Value = from_slice(&decoded).expect("decoding error");
     let json_str = serde_json::to_string(&cbor).expect("decoding error");
     let attestation: serde_json::Value = serde_json::from_str(&json_str).expect("decoding error");
+
+    //print attestation
+    // println!("attestation: {:?}", attestation);
 
     Ok(AttestationObject {
         fmt: attestation["fmt"].as_str().unwrap().to_string(),
