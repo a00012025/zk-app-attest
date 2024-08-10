@@ -1,4 +1,4 @@
-use app_attest_core::AppAttestationRequest;
+use app_attest_core::types::AppAttestationRequest;
 use methods::{ZK_ATTEST_GUEST_ELF, ZK_ATTEST_GUEST_ID};
 use risc0_zkvm::{default_prover, ExecutorEnv};
 

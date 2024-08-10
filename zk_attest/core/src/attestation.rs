@@ -79,8 +79,6 @@ pub fn validate_attestation(
                 match new_seq.content {
                     der_parser::der::DerObjectContent::OctetString(data) => {
                         if data != expected_nonce.to_vec() {
-                            println!("Expected nonce: {:?}", expected_nonce.to_vec());
-                            println!("Actual nonce: {:?}", data);
                             panic!("Nonce mismatch.");
                         }
                     }
@@ -112,8 +110,6 @@ pub fn validate_attestation(
         decode_auth_data(Base64::decode_vec(&attestation.auth_data.clone().to_string()).unwrap())
             .expect("decoding error");
     if auth_data.rp_id != app_id_hash.to_vec() {
-        println!("RP ID: {:?}", Base64::encode_string(&auth_data.rp_id));
-        println!("App ID hash: {:?}", Base64::encode_string(&app_id_hash));
         panic!("RP ID hash mismatch.");
     }
 
@@ -140,7 +136,6 @@ pub fn validate_attestation(
                             97, 112, 112, 97, 116, 116, 101, 115, 116, 0, 0, 0, 0, 0, 0, 0,
                         ])
             {
-                println!("aaguid: {:?}", aaguid.as_slice());
                 panic!("AAGUID mismatch (prod).");
             }
 
@@ -151,7 +146,6 @@ pub fn validate_attestation(
                         0x65, 0x6c, 0x6f, 0x70,
                     ]
             {
-                println!("aaguid: {:?}", aaguid.as_slice());
                 panic!("AAGUID mismatch (dev).");
             }
         }
