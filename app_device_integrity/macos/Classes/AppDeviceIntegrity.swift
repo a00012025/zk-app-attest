@@ -1,13 +1,9 @@
 import Foundation
 import DeviceCheck
 import CryptoKit
-
-#if os(macOS)
 import AppKit
-#endif
 
-@available(iOS 14.0, macOS 11.0, *)
-
+@available(macOS 11.0, *)
 final class AppDeviceIntegrity {
     let inputString: String
     var attestationString: String?
@@ -68,7 +64,7 @@ final class AppDeviceIntegrity {
             let decodedData: Data? = Data(base64Encoded: attestationObject.base64EncodedData(), options: .ignoreUnknownCharacters)
             guard let finalDecodedData = decodedData else { return }
             
-            guard let decodedAttestation = String(data: finalDecodedData.base64EncodedData(), encoding: .utf8) else {
+            if String(data: finalDecodedData.base64EncodedData(), encoding: .utf8) == nil {
                 return
             }
             

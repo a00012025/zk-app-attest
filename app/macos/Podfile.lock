@@ -1,16 +1,22 @@
 PODS:
+  - app_device_integrity (0.0.1):
+    - FlutterMacOS
   - FlutterMacOS (1.0.0)
 
 DEPENDENCIES:
+  - app_device_integrity (from `Flutter/ephemeral/.symlinks/plugins/app_device_integrity/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
 
 EXTERNAL SOURCES:
+  app_device_integrity:
+    :path: Flutter/ephemeral/.symlinks/plugins/app_device_integrity/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
 
 SPEC CHECKSUMS:
+  app_device_integrity: 0c1cec458d352f76428c8278a25eb32e7a31e797
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
 
-PODFILE CHECKSUM: 236401fc2c932af29a9fcf0e97baeeb2d750d367
+PODFILE CHECKSUM: c2e95c8c0fe03c5c57e438583cae4cc732296009
 
 COCOAPODS: 1.15.2
