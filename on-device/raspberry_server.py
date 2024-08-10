@@ -1,8 +1,11 @@
 import urequests
 import json
 
+from utilities import load_env
+
 # Your API endpoint (HTTPS URL)
-url = "https://your-api-endpoint.com/data"
+env = load_env()
+url = env.get('API_URL', 'default_API_URL')
 
 # Data to send
 data = {
