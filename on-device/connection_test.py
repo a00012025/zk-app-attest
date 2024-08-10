@@ -3,7 +3,7 @@ import utime
 # import network
 
 import utilities
-import breathalyzer
+import breathalyzer_util
 
 
 if __name__ == "__main__":
@@ -26,7 +26,7 @@ if __name__ == "__main__":
         analog_value = adc.read_u16()
         
         # Convert the value to a voltage (assuming a 3.3V reference)
-        voltage = breathalyzer.MQ3_analog_to_voltage(analog_value, 3.3)
+        voltage = breathalyzer_util.MQ3_analog_to_voltage(analog_value, 3.3)
         
         print("i={} | Analog Value:".format(i), analog_value, "| Voltage:", voltage, "V")
 
