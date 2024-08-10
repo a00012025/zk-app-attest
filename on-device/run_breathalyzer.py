@@ -1,19 +1,27 @@
 import machine
 import utime
+import json
 # import network
 
 import utilities
 import breathalyzer_util
 import math_util
+# import pico_client_tasks as cl
 # import hardcoded_adjustment as ha
 
+# FOR some context
+# -> Alcohol sensor interpretation:
+#     1) room: 0.6-0.8V
+#     2) soft-drink breath: 1-1.3V
+#     3) post alcohol breath: 1.5-2V
+#     4) 30% alcohol count breath: 3V+
 
 if __name__ == "__main__":
     # first things first
     #   -> Access the env variables
     env = utilities.load_env()
     #   -> connect to wifi
-    utilities.connect_wifi(ssid=env.get('SSID', 'default_SSID'), pwd=env.get('PASSWORD', 'default_PASSWORD'))
+    utilities.connect_wifi(ssid=env["WIFI_SSID"], pwd=env["WIFI_PASSWORD"])
 
     # Run SENSORS
     #   -> Initialize the ADC (analog to digital converter) for alcohol sensor & Button
@@ -22,10 +30,13 @@ if __name__ == "__main__":
 
     #   -> Set some run-time params
     wait_it = 0 
-    while wait_it<50:
+    while wait_it<25:
         button_state = button_pin.value()
         if button_state != 1:
             print("PRESSED")
+
+            # FYI, particular raspberry pi used seems to thin kit's 2021, but i don;t wanna write a function to handle this...
+
             # now = utime.localtime()
 
             # q, r = divmod(now[4] + ha.__device_min_offset, 60)
@@ -40,8 +51,6 @@ if __name__ == "__main__":
             # now[1] =r
 
             # now[0] += ha.__device_year_offset + q
-
-
             
             math_nerd = math_util.RunningStats()
 
@@ -56,15 +65,22 @@ if __name__ == "__main__":
 
                 print("Analog Value:", analog_value, "| Voltage:", voltage, "V")
                 utime.sleep(0.5)  # Delay for 0.5 second
-            
+
+            run_time = utilities.custom_strftime(
+                "{year}/{month:02d}/{day:02d} {hour:02d}:{minute:02d}", 
+                utime.localtime()
+            )
             voltage_stats = {
-                "time": utime.localtime(),
+                "time": run_time,
                 "min": math_nerd.min,
                 "max": math_nerd.max, 
                 "mean": math_nerd.get_mean(),
-                "std": math_nerd.get_stddev()
+                "std": math_nerd.get_stddev(),
+                "run_id": utilities.generate_run_id(user_id=env["USER_ID"], run_time=run_time, sensor_type="alcohol_sensor")
             }
             print(voltage_stats)
+            # voltage_stats = json.dumps(voltage_stats)
+            # cl.send_post_request(json_data=voltage_stats, url=env.get('URL', 'default_URL'))
             del voltage_stats
 
         else:
@@ -73,4 +89,3 @@ if __name__ == "__main__":
             wait_it += 1
             continue
         
-    # generate_run_id()
