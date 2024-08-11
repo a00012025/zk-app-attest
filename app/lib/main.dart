@@ -21,7 +21,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Alcohol Detector',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -41,7 +41,7 @@ class _MyAppState extends State<MyApp> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Alcohol Detector'),
     );
   }
 }
@@ -65,9 +65,12 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  bool? _isDrunk = true;
+  int? _alcoholLevel;
+  String? _timestamp = '2024-08-11 11:25:11';
+  String? _runId = 'cabe2190492d';
+
   ServerSocket? _serverSocket;
-  List<String> _messages = [];
 
   @override
   void initState() {
@@ -82,7 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
       print('tokenReceived: $token');
     });
 
-    _startTCPServer();
+    _startHttpServer();
   }
 
   @override
@@ -91,37 +94,57 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void _startTCPServer() async {
+  void _startHttpServer() async {
     try {
-      // Start the server and listen on a port
-      _serverSocket = await ServerSocket.bind(InternetAddress.anyIPv4, 8000);
-      print('TCP Server started on port 8000');
+      // Start the HTTP server and listen on a port
+      var server = await HttpServer.bind(InternetAddress.anyIPv4, 8000);
+      print('HTTP Server started on port 8000');
 
-      _serverSocket?.listen((Socket client) {
-        print(
-            'Connection from ${client.remoteAddress.address}:${client.remotePort}');
+      await for (HttpRequest request in server) {
+        try {
+          if (request.method == 'POST') {
+            print(
+                'Connection from ${request.connectionInfo?.remoteAddress.address}:${request.connectionInfo?.remotePort}');
 
-        client.listen((Uint8List data) {
-          final message = utf8.decode(data);
-          print('Message: $message');
+            String content = await utf8.decoder.bind(request).join();
+            print('Message: $content');
 
-          setState(() {
-            _messages.add(
-                'Message from ${client.remoteAddress.address}:${client.remotePort} - $message');
-          });
-        }, onDone: () {
-          print('Client disconnected');
-        });
-      });
+            // parse the json
+            final json = jsonDecode(content);
+            final voltages = json['voltage_array'] as List<dynamic>;
+            setState(() {
+              _isDrunk = voltages.any((voltage) => voltage > 2);
+              // _alcoholLevel = voltages.reduce((maxValue, voltage) =>
+              // maxValue > voltage ? maxValue : voltage);
+              _timestamp = json['time'];
+              _runId = json['run_id'];
+            });
+
+            request.response
+              ..statusCode = HttpStatus.ok
+              ..write('Data received')
+              ..close();
+          } else {
+            request.response
+              ..statusCode = HttpStatus.methodNotAllowed
+              ..write('Only POST method is allowed')
+              ..close();
+          }
+        } catch (e) {
+          print('Error processing request: $e');
+          request.response
+            ..statusCode = HttpStatus.internalServerError
+            ..write('Error processing request')
+            ..close();
+        }
+      }
     } catch (e) {
-      print('Error starting TCP server: $e');
+      print('Error starting HTTP server: $e');
     }
   }
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  void _runAttestation() {
+    print('Running attestation for $_alcoholLevel');
   }
 
   @override
@@ -132,39 +155,71 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+            AnimatedContainer(
+              duration: Duration(milliseconds: 500),
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                color: _isDrunk == null
+                    ? Colors.grey
+                    : (_isDrunk == true ? Colors.red : Colors.green),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10,
+                    offset: Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Icon(
+                  _isDrunk == null
+                      ? Icons.help_outline
+                      : (_isDrunk == true ? Icons.warning : Icons.check),
+                  color: Colors.white,
+                  size: 80,
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            Text(
+              _isDrunk == null
+                  ? 'Waiting for data...'
+                  : (_isDrunk == true
+                      ? 'You are drunk!'
+                      : 'You are not drunk!'),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: _isDrunk == null
+                    ? Colors.grey
+                    : (_isDrunk == true ? Colors.red : Colors.green),
+              ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Timestamp: ${_timestamp ?? 'N/A'}',
+              style: TextStyle(fontSize: 16),
             ),
             Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+              'Run ID: ${_runId ?? 'N/A'}',
+              style: TextStyle(fontSize: 16),
             ),
+            SizedBox(height: 12),
+            if (_isDrunk != null)
+              ElevatedButton(
+                onPressed: () {
+                  _runAttestation();
+                },
+                child: Text('Run Attestation'),
+              ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
