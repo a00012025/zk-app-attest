@@ -1,8 +1,13 @@
 use alloy_primitives::{Address, U256};
 use alloy_sol_types::SolValue;
 use app_attest_core::types::AppAttestationRequest;
+use bincode;
 use methods::{ZK_ATTEST_GUEST_ELF, ZK_ATTEST_GUEST_ID};
 use risc0_zkvm::{default_prover, ExecutorEnv};
+
+const PROOF_FILE_PATH: &str = "risc_zero_zk_attest.proof";
+const PUB_INPUT_FILE_PATH: &str = "risc_zero_zk_attest.pub";
+const ZK_ATTEST_ID_FILE_PATH: &str = "zk_attest_id.bin";
 
 fn main() {
     // Initialize tracing. In order to view logs, run `RUST_LOG=info cargo run`
@@ -53,4 +58,23 @@ fn main() {
     // The receipt was verified at the end of proving, but the below code is an
     // example of how someone else could verify this receipt.
     receipt.verify(ZK_ATTEST_GUEST_ID).unwrap();
+
+    // generate files needed by aligned
+    let serialized = bincode::serialize(&receipt).unwrap();
+
+    std::fs::write(PROOF_FILE_PATH, serialized).expect("Failed to write proof file");
+
+    std::fs::write(ZK_ATTEST_ID_FILE_PATH, convert(&ZK_ATTEST_GUEST_ID))
+        .expect("Failed to write zk_attest_id file");
+
+    std::fs::write(PUB_INPUT_FILE_PATH, receipt.journal.bytes)
+        .expect("Failed to write pub_input file");
+}
+
+pub fn convert(data: &[u32; 8]) -> [u8; 32] {
+    let mut res = [0; 32];
+    for i in 0..8 {
+        res[4 * i..4 * (i + 1)].copy_from_slice(&data[i].to_le_bytes());
+    }
+    res
 }
