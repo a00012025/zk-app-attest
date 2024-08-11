@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["host", "methods", "core", "rust_api_server", "methods/guest"]
+members = ["host", "methods", "core", "rust_api_server", "methods/guest", "publisher"]
 
 [workspace.dependencies]
 risc0-build = "1.0.5"

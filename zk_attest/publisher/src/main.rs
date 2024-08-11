@@ -1,19 +1,113 @@
-use alloy_primitives::{Address, U256};
-use alloy_sol_types::SolValue;
+// Copyright 2024 RISC Zero, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// This application demonstrates how to send an off-chain proof request
+// to the Bonsai proving service and publish the received proofs directly
+// to your deployed app contract.
+
+use alloy_primitives::U256;
+use alloy_sol_types::{sol, SolInterface, SolValue};
+use anyhow::Result;
 use app_attest_core::types::AppAttestationRequest;
-use bincode;
-use methods::{ZK_ATTEST_GUEST_ELF, ZK_ATTEST_GUEST_ID};
-use risc0_zkvm::{default_prover, ExecutorEnv};
+use clap::Parser;
+use env_logger;
+use ethers::prelude::*;
+use methods::ZK_ATTEST_GUEST_ELF;
+use risc0_ethereum_contracts::groth16;
+use risc0_zkvm::{default_prover, ExecutorEnv, ProverOpts, VerifierContext};
 
-const PROOF_FILE_PATH: &str = "risc_zero_zk_attest.proof";
-const PUB_INPUT_FILE_PATH: &str = "risc_zero_zk_attest.pub";
-const ZK_ATTEST_ID_FILE_PATH: &str = "zk_attest_id.bin";
+// `ZkAlcoholAttest` interface automatically generated via the alloy `sol!` macro.
+sol! {
+    interface ZkAlcoholAttest {
+        function mint(address to, uint256 value, bytes calldata seal);
+    }
+}
 
-fn main() {
-    // Initialize tracing. In order to view logs, run `RUST_LOG=info cargo run`
-    tracing_subscriber::fmt()
-        .with_env_filter(tracing_subscriber::filter::EnvFilter::from_default_env())
-        .init();
+/// Wrapper of a `SignerMiddleware` client to send transactions to the given
+/// contract's `Address`.
+pub struct TxSender {
+    chain_id: u64,
+    client: SignerMiddleware<Provider<Http>, Wallet<k256::ecdsa::SigningKey>>,
+    contract: Address,
+}
+
+impl TxSender {
+    /// Creates a new `TxSender`.
+    pub fn new(chain_id: u64, rpc_url: &str, private_key: &str, contract: &str) -> Result<Self> {
+        let provider = Provider::<Http>::try_from(rpc_url)?;
+        let wallet: LocalWallet = private_key.parse::<LocalWallet>()?.with_chain_id(chain_id);
+        let client = SignerMiddleware::new(provider.clone(), wallet.clone());
+        let contract = contract.parse::<Address>()?;
+
+        Ok(TxSender {
+            chain_id,
+            client,
+            contract,
+        })
+    }
+
+    /// Send a transaction with the given calldata.
+    pub async fn send(&self, calldata: Vec<u8>) -> Result<Option<TransactionReceipt>> {
+        let tx = TransactionRequest::new()
+            .chain_id(self.chain_id)
+            .to(self.contract)
+            .from(self.client.address())
+            .data(calldata);
+
+        log::info!("Transaction request: {:?}", &tx);
+
+        let tx = self.client.send_transaction(tx, None).await?.await?;
+
+        log::info!("Transaction receipt: {:?}", &tx);
+
+        Ok(tx)
+    }
+}
+
+/// Arguments of the publisher CLI.
+#[derive(Parser, Debug)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    /// Ethereum chain ID
+    #[clap(long)]
+    chain_id: u64,
+
+    /// Ethereum Node endpoint.
+    #[clap(long, env)]
+    eth_wallet_private_key: String,
+
+    /// Ethereum Node endpoint.
+    #[clap(long)]
+    rpc_url: String,
+
+    /// Application's contract address on Ethereum
+    #[clap(long)]
+    contract: String,
+}
+
+fn main() -> Result<()> {
+    env_logger::init();
+    // Parse CLI Arguments: The application starts by parsing command-line arguments provided by the user.
+    let args = Args::parse();
+
+    // Create a new transaction sender using the parsed arguments.
+    let tx_sender = TxSender::new(
+        args.chain_id,
+        &args.rpc_url,
+        &args.eth_wallet_private_key,
+        &args.contract,
+    )?;
 
     let challenge_uuid = "35da2fc3-8616-4e3b-8cef-a526792e50fb";
     let challenge_timestamp = "1723314948";
@@ -38,43 +132,43 @@ fn main() {
         .unwrap()
         .build()
         .unwrap();
-    // Obtain the default prover.
-    let prover = default_prover();
 
-    // Proof information by proving the specified ELF binary.
-    // This struct contains the receipt along with statistics about execution of the guest
-    let prove_info = prover.prove(env, ZK_ATTEST_GUEST_ELF).unwrap();
+    let receipt = default_prover()
+        .prove_with_ctx(
+            env,
+            &VerifierContext::default(),
+            ZK_ATTEST_GUEST_ELF,
+            &ProverOpts::groth16(),
+        )?
+        .receipt;
 
-    // extract the receipt.
-    let receipt = prove_info.receipt;
+    // Encode the seal with the selector.
+    let seal = groth16::encode(receipt.inner.groth16()?.seal.clone())?;
 
-    // Decode the journal to get the address and value
-    let journal_bytes = receipt.journal.bytes.clone();
-    let (address, value) = <(Address, U256)>::abi_decode(&journal_bytes, true).unwrap();
+    // Extract the journal from the receipt.
+    let journal = receipt.journal.bytes.clone();
 
-    println!("Address: {:?}", address);
-    println!("Value: {}", value);
+    // Decode Journal: Upon receiving the proof, the application decodes the journal to extract
+    // the verified number. This ensures that the number being submitted to the blockchain matches
+    // the number that was verified off-chain.
+    let (address, value) = <(alloy_primitives::Address, U256)>::abi_decode(&journal, true).unwrap();
 
-    // The receipt was verified at the end of proving, but the below code is an
-    // example of how someone else could verify this receipt.
-    receipt.verify(ZK_ATTEST_GUEST_ID).unwrap();
+    // Construct function call: Using the ZkAlcoholAttest interface, the application constructs
+    // the ABI-encoded function call for the set function of the EvenNumber contract.
+    // This call includes the verified number, the post-state digest, and the seal (proof).
+    let calldata = ZkAlcoholAttest::ZkAlcoholAttestCalls::mint(ZkAlcoholAttest::mintCall {
+        to: address,
+        value,
+        seal: seal.into(),
+    })
+    .abi_encode();
 
-    // generate files needed by aligned
-    let serialized = bincode::serialize(&receipt).unwrap();
+    // Initialize the async runtime environment to handle the transaction sending.
+    let runtime = tokio::runtime::Runtime::new()?;
 
-    std::fs::write(PROOF_FILE_PATH, serialized).expect("Failed to write proof file");
+    // Send transaction: Finally, the TxSender component sends the transaction to the Ethereum blockchain,
+    // effectively calling the set function of the EvenNumber contract with the verified number and proof.
+    runtime.block_on(tx_sender.send(calldata))?;
 
-    std::fs::write(ZK_ATTEST_ID_FILE_PATH, convert(&ZK_ATTEST_GUEST_ID))
-        .expect("Failed to write zk_attest_id file");
-
-    std::fs::write(PUB_INPUT_FILE_PATH, receipt.journal.bytes)
-        .expect("Failed to write pub_input file");
-}
-
-pub fn convert(data: &[u32; 8]) -> [u8; 32] {
-    let mut res = [0; 32];
-    for i in 0..8 {
-        res[4 * i..4 * (i + 1)].copy_from_slice(&data[i].to_le_bytes());
-    }
-    res
+    Ok(())
 }

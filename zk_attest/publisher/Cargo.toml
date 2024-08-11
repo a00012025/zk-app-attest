@@ -1,0 +1,31 @@
+[package]
+name = "publisher"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde_cbor = "0.10"
+serde = { version = "1.0.200", features = ["derive"] }
+serde_derive = "1.0.200"
+serde_json = "1.0.116"
+sha2 = { version = "0.10", default-features = false }
+p256 = "0.13.2"
+hex = "0.4.3"
+bcder = "0.7.4"
+bytes = "1.5.0"
+der-parser = "9.0.0"
+x509-verify = { version = "0.4.5", features = ["p256", "p384", "x509", "pem"] }
+x509-cert = "0.2.5"
+base64ct = "1.6.0"
+alloy-primitives = { version = "0.6", default-features = false, features = ["rlp", "serde", "std"] }
+alloy-sol-types = { version = "0.6" }
+methods = { workspace = true }
+anyhow = { version = "1.0.75" }
+clap = { version = "4.0", features = ["derive", "env"] }
+ethers = { version = "2.0" }
+risc0-ethereum-contracts = { git = "https://github.com/risc0/risc0-ethereum", tag = "v1.0.0" }
+risc0-zkvm = { version = "1.0", default-features = false }
+tokio = { version = "1.35", features = ["full"] }
+log = "0.4"
+env_logger = { version = "0.10" }
+app_attest_core = { path = "../core" }

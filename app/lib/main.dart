@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:app_device_integrity/app_device_integrity.dart';
@@ -21,42 +20,18 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Alcohol Detector',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a blue toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Alcohol Detector'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
 
   final String title;
 
@@ -65,15 +40,24 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  int? _alcoholLevel = null;
+  bool? _isDrunk = null;
+  String? _timestamp = null;
+  String? _runId = null;
+  // int? _alcoholLevel = 213;
+  // bool? _isDrunk = true;
+  // String? _timestamp = '2024-08-11 11:25:11';
+  // String? _runId = 'cabe2190492d';
+
+  late final AppDeviceIntegrity appAttestationPlugin;
   ServerSocket? _serverSocket;
-  List<String> _messages = [];
+  String? _token;
 
   @override
   void initState() {
     super.initState();
 
-    final appAttestationPlugin = AppDeviceIntegrity();
+    appAttestationPlugin = AppDeviceIntegrity();
     String challenge = '35da2fc3-8616-4e3b-8cef-a526792e50fb:1723314948:231';
 
     appAttestationPlugin
@@ -82,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
       print('tokenReceived: $token');
     });
 
-    _startTCPServer();
+    _startHttpServer();
   }
 
   @override
@@ -91,36 +75,69 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  void _startTCPServer() async {
+  void _startHttpServer() async {
     try {
-      // Start the server and listen on a port
-      _serverSocket = await ServerSocket.bind(InternetAddress.anyIPv4, 8000);
-      print('TCP Server started on port 8000');
+      // Start the HTTP server and listen on a port
+      var server = await HttpServer.bind(InternetAddress.anyIPv4, 8000);
+      print('HTTP Server started on port 8000');
 
-      _serverSocket?.listen((Socket client) {
-        print(
-            'Connection from ${client.remoteAddress.address}:${client.remotePort}');
+      await for (HttpRequest request in server) {
+        try {
+          if (request.method == 'POST') {
+            print(
+                'Connection from ${request.connectionInfo?.remoteAddress.address}:${request.connectionInfo?.remotePort}');
 
-        client.listen((Uint8List data) {
-          final message = utf8.decode(data);
-          print('Message: $message');
+            String content = await utf8.decoder.bind(request).join();
+            print('Message: $content');
 
-          setState(() {
-            _messages.add(
-                'Message from ${client.remoteAddress.address}:${client.remotePort} - $message');
-          });
-        }, onDone: () {
-          print('Client disconnected');
-        });
-      });
+            // parse the json
+            final json = jsonDecode(content);
+            final voltages = json['voltage_array'] as List<dynamic>;
+            setState(() {
+              _isDrunk = voltages.any((voltage) => voltage > 2);
+              _alcoholLevel = ((voltages.reduce((maxValue, voltage) =>
+                          maxValue > voltage ? maxValue : voltage) *
+                      100) as double)
+                  .round();
+              _timestamp = DateTime.now().toString();
+              _runId = 'c190311eb92d';
+              // _timestamp = json['time'];
+              // _runId = json['run_id'];
+            });
+
+            request.response
+              ..statusCode = HttpStatus.ok
+              ..write('Data received')
+              ..close();
+          } else {
+            request.response
+              ..statusCode = HttpStatus.methodNotAllowed
+              ..write('Only POST method is allowed')
+              ..close();
+          }
+        } catch (e) {
+          print('Error processing request: $e');
+          request.response
+            ..statusCode = HttpStatus.internalServerError
+            ..write('Error processing request')
+            ..close();
+        }
+      }
     } catch (e) {
-      print('Error starting TCP server: $e');
+      print('Error starting HTTP server: $e');
     }
   }
 
-  void _incrementCounter() {
+  void _runAttestation() async {
+    print('Running attestation for $_alcoholLevel');
+    final timestamp =
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+    final challenge =
+        '35da2fc3-8616-4e3b-8cef-a526792e50fb:$timestamp:${_alcoholLevel ?? 0}';
+    final token = await appAttestationPlugin.getAttestationServiceSupport(
+        challengeString: challenge);
     setState(() {
-      _counter++;
+      _token = token?.replaceAll(RegExp(r'\/'), '/');
     });
   }
 
@@ -132,39 +149,111 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+            AnimatedContainer(
+              duration: Duration(milliseconds: 500),
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                color: _isDrunk == null
+                    ? Colors.grey
+                    : (_isDrunk == true ? Colors.red : Colors.green),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10,
+                    offset: Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Icon(
+                  _isDrunk == null
+                      ? Icons.help_outline
+                      : (_isDrunk == true ? Icons.warning : Icons.check),
+                  color: Colors.white,
+                  size: 80,
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            Text(
+              _isDrunk == null
+                  ? 'Waiting for data...'
+                  : (_isDrunk == true
+                      ? 'You are drunk!'
+                      : 'You are not drunk!'),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: _isDrunk == null
+                    ? Colors.grey
+                    : (_isDrunk == true ? Colors.red : Colors.green),
+              ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Timestamp: ${_timestamp ?? 'N/A'}',
+              style: TextStyle(fontSize: 16),
             ),
             Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+              'Run ID: ${_runId ?? 'N/A'}',
+              style: TextStyle(fontSize: 16),
             ),
+            SizedBox(height: 12),
+            if (_isDrunk != null)
+              ElevatedButton(
+                onPressed: () {
+                  _runAttestation();
+                },
+                child: Text('Run Attestation'),
+              ),
+            if (_token != null)
+              Padding(
+                padding: const EdgeInsets.all(18.0),
+                child: Column(
+                  children: [
+                    Text(
+                      'Token: ${_token!.substring(0, 100)}...${_token!.substring(_token!.length - 100)}',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                        onPressed: () async {
+                          await Future.delayed(Duration(seconds: 1));
+                          // show modal about successfully submitted
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text('Proof Submitted'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: Colors.green,
+                                    size: 64,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Your proof has been submitted successfully!',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        child: Text('Submit Proof'))
+                  ],
+                ),
+              ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

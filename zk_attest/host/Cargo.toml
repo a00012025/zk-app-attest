@@ -11,3 +11,4 @@ serde = "1.0"
 app_attest_core = { path = "../core" }
 alloy-primitives = { version = "0.6", default-features = false, features = ["rlp", "serde", "std"] }
 alloy-sol-types = { version = "0.6" }
+bincode = "1.3"
