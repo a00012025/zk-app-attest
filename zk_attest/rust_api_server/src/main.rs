@@ -12,18 +12,20 @@ struct Output {
     value: U256
 }
 
+// This is basically having the host code for risc zero zkVM encapsulated in the api server.
 async fn generate_proof_post(input: web::Json<AppAttestationRequest>) -> impl Responder {
-    //Run the proof generation code in the guest code
+    //Run the proof generation code
 
+    // Create the executor environment for the prover
     let env = ExecutorEnv::builder()
         .write(&input)
         .unwrap()
         .build()
         .unwrap();
 
-    let prover = default_prover();
+    let prover = default_prover(); //instantiating the prover
 
-    // Run the guest code
+    // Run the guest code using its binary
     let prove_info = prover.prove(env, ZK_ATTEST_GUEST_ELF).unwrap();
 
     // extract the receipt.
@@ -45,6 +47,7 @@ async fn generate_proof_post(input: web::Json<AppAttestationRequest>) -> impl Re
 }
 
 
+// API SERVER RUN
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
