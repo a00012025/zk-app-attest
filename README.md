@@ -5,9 +5,10 @@ drinKZ is an innovative project that addresses the challenge of bringing ownersh
 ![drinKZ](./imgs/arch.jpg)
 
 <div style="display: flex; justify-content: space-between;">
-  <img src="./imgs/app1.png" width="30%" alt="App Screenshot 1">
-  <img src="./imgs/app2.png" width="30%" alt="App Screenshot 2">
-  <img src="./imgs/app3.png" width="30%" alt="App Screenshot 3">
+  <img src="./imgs/app1.png" width="25%" alt="App Screenshot 1">
+  <img src="./imgs/app2.png" width="25%" alt="App Screenshot 2">
+  <img src="./imgs/app3.png" width="25%" alt="App Screenshot 3">
+  <img src="./imgs/device.png" width="25%" alt="Device">
 </div>
 
 ## Key Features
@@ -61,6 +62,8 @@ Deployed smart contract address: on [Sepolia](https://sepolia.etherscan.io/addre
 
 Example NFT: [zkAlcoholAttest](https://testnets.opensea.io/assets/sepolia/0x0bad2b70c89a5fe1ec6c546c22831cc7ca22bfe1/0)
 
+![nft](./imgs/nft.png)
+
 ## Submit Proof
 
 1. Submit proof to Sepolia and mint an NFT:
@@ -75,13 +78,23 @@ Example NFT: [zkAlcoholAttest](https://testnets.opensea.io/assets/sepolia/0x0bad
 2. Submit proof to Aligned
 
     ```bash
-    aligned submit \
-        --proving_system Risc0 \
-        --proof risc_zero_zk_attest.proof \
+    aligned deposit-to-batcher \
+        --batcher_addr 0x815aeCA64a974297942D2Bbf034ABEe22a38A003 \
+        --rpc https://ethereum-holesky-rpc.publicnode.com \
+        --chain holesky \                      
         --keystore_path ~/.foundry/keystores/test \
+        --amount 0.1ether
+
+    aligned submit \            
+        --proving_system Risc0 \
+        --keystore_path ~/.foundry/keystores/test \
+        --conn wss://batcher.alignedlayer.com \
+        --proof risc_zero_zk_attest.proof \
         --vm_program zk_attest_id.bin \
-        --public_input risc_zero_zk_attest.pub \
-        --proof_generator_addr 0x66f9664f97F2b50F62D13eA064982f936dE76657 \
-        --rpc 'https://ethereum-holesky-rpc.publicnode.com' \
+        --public_input risc_zero_zk_attest.pub \                       
+        --proof_generator_addr 0x66f9664f97F2b50F62D13eA064982f936dE76657 \    
+        --rpc 'https://ethereum-holesky-rpc.publicnode.com'
         --batcher_addr '0x815aeCA64a974297942D2Bbf034ABEe22a38A003'
     ```
+
+Submitted batch: [Aligned Explorer](https://explorer.alignedlayer.com/batches/0x644f6ebee7781ca708cf391709b14b54b4e07eb2204bf072cddb58dd5363a8b8)
