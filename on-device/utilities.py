@@ -9,6 +9,7 @@ def load_env():
         "WIFI_SSID": config.ENV_VARS['WIFI_SSID'],
         "WIFI_PASSWORD": config.ENV_VARS['WIFI_PASSWORD'],
         "API_URL": config.ENV_VARS['API_URL'],
+        "SERVER_URL": config.ENV_VARS['SERVER_URL'],
         "USER_ID": config.ENV_VARS['USER_ID']
     }
     return env_vars
