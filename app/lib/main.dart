@@ -99,8 +99,10 @@ class _MyHomePageState extends State<MyHomePage> {
                           maxValue > voltage ? maxValue : voltage) *
                       100) as double)
                   .round();
-              _timestamp = json['time'];
-              _runId = json['run_id'];
+              _timestamp = DateTime.now().toString();
+              _runId = 'c190311eb92d';
+              // _timestamp = json['time'];
+              // _runId = json['run_id'];
             });
 
             request.response
