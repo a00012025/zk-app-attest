@@ -1,6 +1,9 @@
 [workspace]
 resolver = "2"
-members = ["host", "methods", "core", "publisher"]
+members = ["host", "methods", "core", "rust_api_server", "methods/guest", "publisher"]
+
+[workspace.dependencies]
+risc0-build = "1.0.5"
 
 # Always optimize; building and running the guest takes much longer without optimization.
 [profile.dev]
@@ -9,6 +12,3 @@ opt-level = 3
 [profile.release]
 debug = 1
 lto = true
-
-[workspace.dependencies]
-methods = { path = "./methods" }

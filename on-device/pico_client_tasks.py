@@ -1,8 +1,6 @@
 import urequests
 import json
 
-from utilities import load_env, connect_wifi
-
 # Your API endpoint (HTTPS URL)
 
 
