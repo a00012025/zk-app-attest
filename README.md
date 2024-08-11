@@ -5,10 +5,10 @@ drinKZ is an innovative project that addresses the challenge of bringing ownersh
 ![drinKZ](./imgs/arch.jpg)
 
 <div style="display: flex; justify-content: space-between;">
-  <img src="./imgs/app1.png" width="25%" alt="App Screenshot 1">
-  <img src="./imgs/app2.png" width="25%" alt="App Screenshot 2">
-  <img src="./imgs/app3.png" width="25%" alt="App Screenshot 3">
-  <img src="./imgs/device.png" width="25%" alt="Device">
+  <img src="./imgs/app1.png" width="22%" alt="App Screenshot 1">
+  <img src="./imgs/app2.png" width="22%" alt="App Screenshot 2">
+  <img src="./imgs/app3.png" width="22%" alt="App Screenshot 3">
+  <img src="./imgs/device.png" width="22%" alt="Device">
 </div>
 
 ## Key Features
