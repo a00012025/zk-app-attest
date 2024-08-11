@@ -17,6 +17,20 @@ import pico_client_tasks as cl
 #     3) post alcohol breath: 1.5-2V
 #     4) 30% alcohol count breath: 2~3V+
 
+
+# RIGHT NOW - we need to kill the app once the app is exited
+# 103 and 104 error?
+# -> on the app side, need to be able to handle while the app is running
+# -> if returing an error associated with closed app or while app is open (assuming connection is there)
+        # -> keep running til error handled?
+# wut at app side? -> make sure it's listening to it as long as the app is open?
+
+
+# TODO: error handlign for variety of signal sending issues
+# 1) Different Failure Modes - not connected, couldn't send over, receiver rejectio
+# 2) Different Failure Modes - 
+# 3) Differet Failure Modes - 
+
 if __name__ == "__main__":
     # first things first
     #   -> Access the env variables
