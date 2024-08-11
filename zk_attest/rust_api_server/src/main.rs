@@ -1,39 +1,34 @@
 use actix_web::{web, App, HttpServer, Responder};
-use serde::{Deserialize, Serialize};
-// use crate::simple_math::calculate_max;
+// use serde::{Deserialize, Serialize};
+use app_attest_core::types::AppAttestationRequest;
+use risc0_zkvm::{ExecutorEnv, Prover};
+use guest_crate::METHOD_ID; //TODO: wadiz?
 
 
-#[derive(Deserialize)]
-struct InputData { // Input comign from device side
-    time: String,
-    voltage_array: [f32; 10],
-    run_id: String
-}AppAttestationRequest -> input
+async fn generate_proof_post(input: web::Json<AppAttestationRequest>) -> impl Responder {
+    //Run the proof generation code in the guest code
 
-#[derive(Serialize)]
-struct OutputData { //Output to put into zkVM guest code
-    time: String,
-    drunk_or_not: bool,
-    run_id: String
-} -> (address, value).abi_encode
+    // Set up the executor environment
+    let env = ExecutorEnv::builder()
+        .add_input(&input)
+        .build()
+        .unwrap();
 
-pub fn calculate_max(numbers: &[f32]) -> f32 {
-    *numbers.iter().max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap()
-}
+    // Create a prover instance
+    let prover = Prover::new(&METHOD_ID, env).unwrap();
 
-async fn handle_post(input: web::Json<SensorInputData>) -> impl Responder {
-    let output = OutputData {
-        time: input.time.clone(),
-        drunk_or_not: if calculate_max(&input.voltage_array),
-        run_id: input.run_id.clone()
-    };
-    
-    web::Json(output)
-}
+    // Run the guest code
+    let receipt = prover.run().unwrap();
 
-async fn generate_proof_post(input: web::Json<InputData>) -> impl Responder {
-    let proof = generate_proof(&input.run_id);
-    web::Json(proof)
+    // Verify the receipt
+    receipt.verify(METHOD_ID).unwrap();
+
+    // Extract and process the journal
+    let journal = receipt.journal;
+    let result = process_journal(journal);
+
+    // Return the result as a JSON response
+    web::Json(result)
 }
 
 
@@ -41,10 +36,8 @@ async fn generate_proof_post(input: web::Json<InputData>) -> impl Responder {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
-        App::new().service(
-            web::resource("/api")
-                .route(web::post().to(handle_post))
-        )
+        App::new()
+            .route("/trigger-guest", web::post().to(trigger_guest_code))
     })
     .bind("127.0.0.1:8080")?
     .run()
