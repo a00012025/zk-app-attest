@@ -40,14 +40,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // int? _alcoholLevel = null;
-  // bool? _isDrunk = null;
-  // String? _timestamp = null;
-  // String? _runId = null;
-  int? _alcoholLevel = 213;
-  bool? _isDrunk = false;
-  String? _timestamp = '2024-08-11 11:25:11';
-  String? _runId = 'cabe2190492d';
+  int? _alcoholLevel = null;
+  bool? _isDrunk = null;
+  String? _timestamp = null;
+  String? _runId = null;
+  // int? _alcoholLevel = 213;
+  // bool? _isDrunk = true;
+  // String? _timestamp = '2024-08-11 11:25:11';
+  // String? _runId = 'cabe2190492d';
 
   late final AppDeviceIntegrity appAttestationPlugin;
   ServerSocket? _serverSocket;
