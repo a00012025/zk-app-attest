@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:app_device_integrity/app_device_integrity.dart';
@@ -23,21 +22,6 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Alcohol Detector',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a blue toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
@@ -49,15 +33,6 @@ class _MyAppState extends State<MyApp> {
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -65,18 +40,24 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  bool? _isDrunk = true;
-  int? _alcoholLevel;
+  // int? _alcoholLevel = null;
+  // bool? _isDrunk = null;
+  // String? _timestamp = null;
+  // String? _runId = null;
+  int? _alcoholLevel = 213;
+  bool? _isDrunk = false;
   String? _timestamp = '2024-08-11 11:25:11';
   String? _runId = 'cabe2190492d';
 
+  late final AppDeviceIntegrity appAttestationPlugin;
   ServerSocket? _serverSocket;
+  String? _token;
 
   @override
   void initState() {
     super.initState();
 
-    final appAttestationPlugin = AppDeviceIntegrity();
+    appAttestationPlugin = AppDeviceIntegrity();
     String challenge = '35da2fc3-8616-4e3b-8cef-a526792e50fb:1723314948:231';
 
     appAttestationPlugin
@@ -114,8 +95,10 @@ class _MyHomePageState extends State<MyHomePage> {
             final voltages = json['voltage_array'] as List<dynamic>;
             setState(() {
               _isDrunk = voltages.any((voltage) => voltage > 2);
-              // _alcoholLevel = voltages.reduce((maxValue, voltage) =>
-              // maxValue > voltage ? maxValue : voltage);
+              _alcoholLevel = ((voltages.reduce((maxValue, voltage) =>
+                          maxValue > voltage ? maxValue : voltage) *
+                      100) as double)
+                  .round();
               _timestamp = json['time'];
               _runId = json['run_id'];
             });
@@ -143,8 +126,17 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _runAttestation() {
+  void _runAttestation() async {
     print('Running attestation for $_alcoholLevel');
+    final timestamp =
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000).toString();
+    final challenge =
+        '35da2fc3-8616-4e3b-8cef-a526792e50fb:$timestamp:${_alcoholLevel ?? 0}';
+    final token = await appAttestationPlugin.getAttestationServiceSupport(
+        challengeString: challenge);
+    setState(() {
+      _token = token?.replaceAll(RegExp(r'\/'), '/');
+    });
   }
 
   @override
@@ -216,6 +208,46 @@ class _MyHomePageState extends State<MyHomePage> {
                   _runAttestation();
                 },
                 child: Text('Run Attestation'),
+              ),
+            if (_token != null)
+              Padding(
+                padding: const EdgeInsets.all(18.0),
+                child: Column(
+                  children: [
+                    Text(
+                      'Token: ${_token!.substring(0, 100)}...${_token!.substring(_token!.length - 100)}',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                        onPressed: () async {
+                          await Future.delayed(Duration(seconds: 1));
+                          // show modal about successfully submitted
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: Text('Proof Submitted'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: Colors.green,
+                                    size: 64,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    'Your proof has been submitted successfully!',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        child: Text('Submit Proof'))
+                  ],
+                ),
               ),
           ],
         ),
