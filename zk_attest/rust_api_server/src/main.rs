@@ -1,5 +1,6 @@
 use actix_web::{web, App, HttpServer, Responder};
 use alloy_primitives::{Address, U256};
+use alloy_sol_types::SolValue;
 use app_attest_core::types::AppAttestationRequest;
 use risc0_zkvm::{ExecutorEnv, default_prover};
 use serde::{Deserialize, Serialize};
