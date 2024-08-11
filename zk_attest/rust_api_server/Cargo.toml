@@ -7,6 +7,8 @@ edition = "2021"
 risc0-zkvm = { version = "1.0.5" }
 actix-web = "4.0"
 awc = "3.0"  # Actix Web Client
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+alloy-primitives = { version = "0.6", default-features = false, features = ["rlp", "serde", "std"] }
 app_attest_core = { path = "../core/" }
 methods = { path = "../methods" }
