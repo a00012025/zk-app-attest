@@ -15,7 +15,7 @@ import pico_client_tasks as cl
 #     1) room: 0.6-0.8V
 #     2) soft-drink breath: 1-1.3V
 #     3) post alcohol breath: 1.5-2V
-#     4) 30% alcohol count breath: 3V+
+#     4) 30% alcohol count breath: 2~3V+
 
 if __name__ == "__main__":
     # first things first
