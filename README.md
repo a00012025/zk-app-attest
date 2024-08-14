@@ -1,6 +1,6 @@
 # drinKZ: Proving breathalyzer test results
 
-drinKZ is meant to bring ownership to one's data, specifically with alcohol consumption measurement.
+drinKZ is meant to bring ownership to one's data, starting with alcohol consumption measurement.
 
 <div style="display: flex; justify-content: space-between;">
   <img src="./imgs/app1.png" width="22%" alt="App Screenshot 1">
