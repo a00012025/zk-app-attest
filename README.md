@@ -22,6 +22,8 @@ drinKZ is meant to bring ownership to one's data, specifically with alcohol cons
 - Trusted IoT Data: Demonstrates a solution to the oracle problem for real-world sensing data in blockchain applications.
 
 ## Technical Stack
+<img width="395" alt="image" src="https://github.com/user-attachments/assets/364ec37b-3dbf-41c0-bd9b-cf42997b75e6">
+
 
 - Raspberry Pi
 - iOS & App Attest
