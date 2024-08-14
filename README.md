@@ -2,8 +2,6 @@
 
 drinKZ is an innovative project that addresses the challenge of bringing ownership and control over one's personal data, specifically in the context of alcohol consumption measurement. By leveraging blockchain technology, zero-knowledge proofs, and secure hardware attestation, drinKZ creates a trustworthy system for recording and verifying breathalyzer test results.
 
-![drinKZ](./imgs/arch.jpg)
-
 <div style="display: flex; justify-content: space-between;">
   <img src="./imgs/app1.png" width="22%" alt="App Screenshot 1">
   <img src="./imgs/app2.png" width="22%" alt="App Screenshot 2">
