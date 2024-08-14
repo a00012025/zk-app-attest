@@ -1,6 +1,6 @@
-# drinKZ: Building Trust in Real Life with Proof of IoT Data
+# drinKZ: Proving breathalyzer test results
 
-drinKZ is an innovative project that addresses the challenge of bringing ownership and control over one's personal data, specifically in the context of alcohol consumption measurement. By leveraging blockchain technology, zero-knowledge proofs, and secure hardware attestation, drinKZ creates a trustworthy system for recording and verifying breathalyzer test results.
+drinKZ is meant to bring ownership to one's data, specifically with alcohol consumption measurement.
 
 <div style="display: flex; justify-content: space-between;">
   <img src="./imgs/app1.png" width="22%" alt="App Screenshot 1">
@@ -12,9 +12,8 @@ drinKZ is an innovative project that addresses the challenge of bringing ownersh
 ## Key Features
 
 - Trusted Data Collection: Utilizes Raspberry Pi devices to collect breathalyzer data, which is then securely processed by an iPhone app.
-- Hardware Attestation: Implements Apple's App Attest service to generate signatures for unique data hashes, ensuring the data comes from a genuine app running on a real device.
-- Zero-Knowledge Proofs: Employs Risc Zero zkVM to generate and verify proofs of the collected data's integrity without revealing the actual data.
-- Blockchain Integration: Mints NFTs on-chain representing verified alcohol levels, providing a tamper-proof record of test results.
+- Hardware Attestation & zkVM: Apple's App Attest and zkVM ensures that data comes from a specific device and untampered with.
+- Blockchain: Mints NFTs on-chain representing verified alcohol levels, providing a tamper-proof record of test results.
 
 ## Use Cases
 
@@ -24,11 +23,11 @@ drinKZ is an innovative project that addresses the challenge of bringing ownersh
 
 ## Technical Stack
 
-- Raspberry Pi for data collection
-- iOS app for data processing and App Attest integration
-- Risc Zero zkVM for zero-knowledge proof generation and verification
-- Ethereum-compatible blockchain for NFT minting and proof verification
-- Proof verification platform to submit our proof
+- Raspberry Pi
+- iOS & App Attest
+- Risc Zero zkVM
+- Ethereum-compatible blockchain
+- Proof verification stacks like Aligned
 
 drinKZ represents a collaborative effort to solve the problem of data ownership and trust in IoT devices. It combines a product-driven approach to a real-world issue with a cutting-edge technical architecture, showcasing the potential of blockchain technology and zero-knowledge proofs in creating trustworthy systems for sensitive personal data.
 
