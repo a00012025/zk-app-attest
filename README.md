@@ -11,8 +11,8 @@ drinKZ is meant to bring ownership to one's data, starting with alcohol consumpt
 
 ## Key Features
 
-- Trusted Data Collection: Utilizes Raspberry Pi devices to collect breathalyzer data, which is then securely processed by an iPhone app.
-- Hardware Attestation & zkVM: Apple's App Attest and zkVM ensures that data comes from a specific device and untampered with.
+- Trusted Data Collection: Utilizes Raspberry Pi devices to collect breathalyzer data, which is then securely processed by the app.
+- Hardware Attestation & ZKP: Apple's App Attest and ZKP ensures that data comes from a specific device and untampered with.
 - Blockchain: Mints NFTs on-chain representing verified alcohol levels, providing a tamper-proof record of test results.
 
 ## Use Cases
@@ -22,8 +22,6 @@ drinKZ is meant to bring ownership to one's data, starting with alcohol consumpt
 - Trusted IoT Data: Demonstrates a solution to the oracle problem for real-world sensing data in blockchain applications.
 
 ## Technical Stack
-<img width="395" alt="image" src="https://github.com/user-attachments/assets/364ec37b-3dbf-41c0-bd9b-cf42997b75e6">
-
 
 - Raspberry Pi
 - iOS & App Attest
